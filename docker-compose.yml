@@ -1,0 +1,31 @@
+services:
+  web:
+    build: .
+    image: particle-dedup:latest
+    container_name: particle-dedup-web
+    ports:
+      # 宿主机端口通过 .env 或环境变量 HOST_PORT 配置，默认 8080
+      - "${HOST_PORT:-8080}:8000"
+    environment:
+      UVICORN_LOG_LEVEL: "${LOG_LEVEL:-info}"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request;urllib.request.urlopen('http://127.0.0.1:8000/health',timeout=2)\""]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 5s
+
+  # 一次性验收服务：代码检查 → 构建产物检查 → 单元测试 → 真实 API 冒烟，
+  # 结束后以退出码表明验收结果（通过 0，失败非 0），不常驻。
+  verify:
+    build: .
+    image: particle-dedup:latest
+    container_name: particle-dedup-verify
+    command: ["bash", "scripts/verify.sh"]
+    environment:
+      WEB_URL: "http://web:8000"
+    depends_on:
+      web:
+        condition: service_healthy
+    restart: "no"
