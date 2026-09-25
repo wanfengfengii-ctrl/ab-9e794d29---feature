@@ -3,12 +3,12 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>海洋微塑料跨视野去重裁决</title>
+<title>海洋微塑料跨视野去重裁决 · 配准复核</title>
 <style>
   :root {
     --blue: #1463a5; --blue-dark:#0e4d82; --bg:#f2f5f8; --line:#d7dee6;
     --red:#c0392b; --red-bg:#fdecea; --green:#217a46; --green-bg:#e8f5ee;
-    --gray:#5a6b7b;
+    --amber:#9a6b00; --amber-bg:#fdf4dd; --gray:#5a6b7b;
   }
   * { box-sizing: border-box; }
   body { margin:0; font-family: "Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
@@ -23,14 +23,17 @@
     padding:6px 8px; border:1px solid var(--line); border-radius:5px; font-size:13px; width:110px;
   }
   input.wide { width:150px; }
+  input.narrow { width:74px; }
   button { border:none; border-radius:6px; padding:8px 16px; font-size:13.5px; cursor:pointer; }
   button.primary { background:var(--blue); color:#fff; }
   button.primary:hover { background:var(--blue-dark); }
+  button.amber { background:#b97b0c; color:#fff; }
+  button.amber:hover { background:#9a6608; }
   button.ghost { background:#fff; border:1px solid var(--line); color:#33475b; }
   button.ghost:hover { background:#eef3f8; }
   button.small { padding:3px 10px; font-size:12px; }
   button:disabled { opacity:.45; cursor:not-allowed; }
-  .fields { display:grid; grid-template-columns:repeat(auto-fit,minmax(330px,1fr)); gap:14px; }
+  .fields { display:grid; grid-template-columns:repeat(auto-fit,minmax(360px,1fr)); gap:14px; }
   .field-card { background:#fff; border:1px solid var(--line); border-radius:10px; padding:12px 14px; }
   .field-card.invalid { border-color:var(--red); box-shadow:0 0 0 2px var(--red-bg); }
   .field-card h3 { margin:0 0 8px; font-size:14.5px; color:var(--blue-dark);
@@ -44,83 +47,137 @@
   table.parts input { width:100%; min-width:0; padding:4px 5px; }
   tr.row-invalid { background:var(--red-bg); }
   input.invalid { border-color:var(--red); background:var(--red-bg); }
+  .subhead { margin:10px 0 2px; font-size:12.5px; color:var(--blue-dark); font-weight:600; }
+  .subhead span { color:var(--gray); font-weight:400; }
   .banner { border-radius:8px; padding:10px 14px; margin:12px 0; font-size:13.5px; display:none; }
   .banner.error { display:block; background:var(--red-bg); border:1px solid var(--red); color:#7c1f15; }
   .banner.error ul { margin:6px 0 0 18px; padding:0; }
   .banner.error code { background:#fff; border:1px solid var(--line); border-radius:3px;
                        padding:0 4px; font-size:12px; }
   .banner.ok { display:block; background:var(--green-bg); border:1px solid var(--green); color:var(--green); }
+  .banner.warn { display:block; background:var(--amber-bg); border:1px solid var(--amber); color:var(--amber); }
   #results { margin-top:18px; }
   .summary { display:flex; gap:14px; flex-wrap:wrap; margin-bottom:12px; }
   .stat { background:#fff; border:1px solid var(--line); border-radius:8px; padding:10px 16px;
-          font-size:13px; min-width:130px; }
+          font-size:13px; }
   .stat b { display:block; font-size:20px; color:var(--blue); margin-top:2px; }
-  .particle { background:#fff; border:1px solid var(--line); border-radius:10px;
+  .particle, .panel { background:#fff; border:1px solid var(--line); border-radius:10px;
               padding:12px 16px; margin-bottom:12px; }
   .particle h3 { margin:0 0 6px; font-size:15px; color:var(--blue-dark); }
   .tag { display:inline-block; background:#e7f0f9; color:var(--blue-dark); border-radius:12px;
          padding:1px 10px; font-size:12px; margin-left:6px; }
+  .tag.off { background:var(--red-bg); color:var(--red); }
+  .tag.single { background:#eef1f4; color:var(--gray); }
   table.detail { width:100%; border-collapse:collapse; font-size:12.5px; margin-top:8px; }
   table.detail th, table.detail td { border-bottom:1px solid #edf1f5; padding:5px 6px; text-align:left; }
   table.detail th { color:var(--gray); font-weight:600; }
   .note { font-size:12px; color:var(--gray); margin:6px 0 16px; }
   .rep { font-size:13px; background:#f6f9fc; border:1px dashed var(--line);
          border-radius:6px; padding:6px 10px; margin:6px 0; }
+  .delta-ok { color:var(--green); font-weight:600; }
+  .delta-bad { color:var(--red); font-weight:600; }
+  h2.section { font-size:16px; margin:18px 0 8px; }
 </style>
 </head>
 <body>
 <header>
   <h1>海洋微塑料监测站 · 同一滤膜相邻显微视野拼接计数</h1>
-  <p>录入 3–5 个视野的平移位置与带编号颗粒候选，发起跨视野去重裁决（全局精确优化，不做局部最近边贪心合并）。草稿自动保存在本浏览器，校验失败不会丢失。</p>
+  <p>录入 3–5 个视野的登记平移与带编号颗粒候选；颗粒去重前可补录全局唯一编号的校准珠局部整数坐标、
+     0–5 格单视野校正范围与珠位残差上限，发起配准复核联合求整数校正量，再以校正平移重跑去重。
+     草稿自动保存在本浏览器，校验失败不会丢失，也不会覆盖上一次成功复核结果。</p>
 </header>
 
 <main>
   <div class="toolbar">
-    <label>容差（滤膜坐标，横/纵差共用，≤ 即关联）：</label>
+    <label>去重容差：</label>
     <input type="number" id="tolerance" min="0" step="any" value="2" />
+    <label>珠位残差上限：</label>
+    <input type="number" id="beadResidualLimit" min="0" step="any" value="1" />
     <span style="flex:1"></span>
     <button class="ghost" id="btnSample">载入示例</button>
     <button class="ghost" id="btnClear">清空草稿</button>
     <button class="ghost" id="btnAddField">+ 视野</button>
+    <button class="amber" id="btnReview">发起配准复核</button>
     <button class="primary" id="btnSubmit">发起去重裁决</button>
+  </div>
+  <div class="toolbar">
+    <button class="ghost small" id="btnLastReview">查看上一次成功复核结果</button>
+    <span class="note" style="margin:0">成功复核后服务端保留结果；复核失败（含不存在可行配准）不覆盖该结果。</span>
   </div>
 
   <div class="banner error" id="errorBox"><b>输入不合规，草稿已保留：</b><ul id="errorList"></ul></div>
   <div class="banner ok" id="okBox"></div>
+  <div class="banner warn" id="warnBox"></div>
 
   <div class="fields" id="fields"></div>
 
   <section id="results"></section>
-  <p class="note">裁决目标（按序）：① 最终颗粒数最少 → ② 所选关联曼哈顿差总和最小（每颗粒取最小生成树）→
-     ③ 仍相同时，按视野录入顺序展开的伙伴编号序列取字典序最小的唯一结论。
-     关联前提：不同视野、类别相同、换算到滤膜坐标后 |Δx|、|Δy| 均不超过容差。</p>
+  <p class="note">去重裁决目标（按序）：① 最终颗粒数最少 → ② 所选关联曼哈顿差总和最小（每颗粒取最小生成树）→
+     ③ 仍相同时，按视野录入顺序展开的伙伴编号序列取字典序最小。
+     配准复核目标（按序）：① 最大珠位坐标残差最小 → ② 全部校正量曼哈顿和最小 →
+     ③ 按视野录入顺序的校正坐标序列字典序最小；首视野校正固定为 (0,0)，
+     仅出现一次的校准珠不参与约束，无法经共享校准珠连到首视野的视野校正固定为零并明确标出。</p>
 </main>
 
 <script>
 "use strict";
-const MIN_FIELDS = 3, MAX_FIELDS = 5;
+const MIN_FIELDS = 3, MAX_FIELDS = 5, MIN_RANGE = 0, MAX_RANGE = 5;
 const STORE_KEY = "particle-dedup-draft-v1";
 
 function blankField(i) {
   return { name: `视野${i + 1}`, shift: {x: 0, y: 0},
-           particles: [{id: "", x: 0, y: 0, category: ""}] };
+           correctionRange: 2,
+           particles: [{id: "", x: 0, y: 0, category: ""}],
+           beads: [{id: "", x: 0, y: 0}] };
 }
 function defaultDraft() {
-  return { tolerance: 2, fields: [blankField(0), blankField(1), blankField(2)] };
+  return { tolerance: 2, beadResidualLimit: 1,
+           fields: [blankField(0), blankField(1), blankField(2)] };
+}
+// 兼容旧版本草稿（无 beadResidualLimit / correctionRange / beads 字段）
+function normalizeDraft(d) {
+  if (!d || typeof d !== "object" || !Array.isArray(d.fields)) return defaultDraft();
+  if (typeof d.beadResidualLimit !== "number") d.beadResidualLimit = 1;
+  d.fields.forEach((f, i) => {
+    if (!f || typeof f !== "object") return;
+    if (!f.shift || typeof f.shift !== "object") f.shift = {x: 0, y: 0};
+    if (!Array.isArray(f.particles)) f.particles = [];
+    if (typeof f.correctionRange !== "number") f.correctionRange = 2;
+    if (!Array.isArray(f.beads)) f.beads = [];
+    f.beads.forEach(b => { if (b && typeof b === "object" &&
+        (b.x === undefined || b.y === undefined)) { b.x = b.x ?? 0; b.y = b.y ?? 0; } });
+  });
+  return d;
 }
 function sampleDraft() {
+  // B 区登记平移受漂移影响（真实应为 (9,0)，登记为 (10,0)）；
+  // 共享校准珠 B1/B2 在 L=1、R=2 下联合求得 B 区校正 (-1,0)。
+  // B3 仅 A 区出现一次（不参与约束）；D 区只有独占珠 B8，无法经共享
+  // 校准珠连到首视野，校正固定为零并在结果中明确标出。
   return {
     tolerance: 2,
+    beadResidualLimit: 1,
     fields: [
-      { name: "A区", shift: {x: 0, y: 0}, particles: [
-        {id: "P1", x: 10, y: 10, category: "PE"},
-        {id: "P2", x: 50, y: 50, category: "PP"} ] },
-      { name: "B区", shift: {x: 10, y: 0}, particles: [
-        {id: "Q1", x: 0, y: 10, category: "PE"},
-        {id: "Q2", x: 40, y: 50, category: "PP"} ] },
-      { name: "C区", shift: {x: 10, y: 10}, particles: [
-        {id: "R1", x: 0, y: 0, category: "PE"},
-        {id: "R2", x: 40, y: 40, category: "PP"} ] },
+      { name: "A区", shift: {x: 0, y: 0}, correctionRange: 2, beads: [
+          {id: "B1", x: 100, y: 100}, {id: "B2", x: 130, y: 100},
+          {id: "B3", x: 60, y: 20} ],
+        particles: [
+          {id: "P1", x: 10, y: 10, category: "PE"},
+          {id: "P2", x: 50, y: 50, category: "PP"} ] },
+      { name: "B区", shift: {x: 10, y: 0}, correctionRange: 2, beads: [
+          {id: "B1", x: 91, y: 100}, {id: "B2", x: 121, y: 100} ],
+        particles: [
+          {id: "Q1", x: 0, y: 10, category: "PE"},
+          {id: "Q2", x: 40, y: 50, category: "PP"} ] },
+      { name: "C区", shift: {x: 10, y: 10}, correctionRange: 2, beads: [
+          {id: "B1", x: 90, y: 90}, {id: "B2", x: 120, y: 90} ],
+        particles: [
+          {id: "R1", x: 0, y: 0, category: "PE"},
+          {id: "R2", x: 40, y: 40, category: "PP"} ] },
+      { name: "D区", shift: {x: 20, y: 10}, correctionRange: 2, beads: [
+          {id: "B8", x: 200, y: 200} ],
+        particles: [
+          {id: "S1", x: 0, y: 0, category: "PE"} ] },
     ],
   };
 }
@@ -130,7 +187,7 @@ let state = loadDraft();
 function loadDraft() {
   try {
     const raw = localStorage.getItem(STORE_KEY);
-    if (raw) { const d = JSON.parse(raw); if (d && Array.isArray(d.fields)) return d; }
+    if (raw) return normalizeDraft(JSON.parse(raw));
   } catch (e) { /* 损坏则回退默认 */ }
   return defaultDraft();
 }
@@ -144,6 +201,7 @@ function esc(s) {
 
 function render() {
   document.getElementById("tolerance").value = state.tolerance;
+  document.getElementById("beadResidualLimit").value = state.beadResidualLimit;
   const box = document.getElementById("fields");
   box.innerHTML = "";
   state.fields.forEach((f, fi) => {
@@ -151,24 +209,53 @@ function render() {
     card.className = "field-card";
     card.dataset.fieldIndex = fi;
     card.innerHTML = `
-      <h3><span>视野 ${fi + 1}</span>
+      <h3><span>视野 ${fi + 1}${fi === 0 ? "（首视野，校正固定为零）" : ""}</span>
         <button class="small ghost" data-act="del-field" ${state.fields.length <= MIN_FIELDS ? "disabled" : ""}>删除</button>
       </h3>
       <div class="meta-row">
         <label>名称</label>
         <input type="text" class="wide" data-loc="fields[${fi}].name" value="${esc(f.name)}" data-k="name">
-        <label>平移 x</label>
+        <label>登记平移 x</label>
         <input type="number" step="any" data-loc="fields[${fi}].shift.x" value="${f.shift.x}" data-k="shift.x">
-        <label>平移 y</label>
+        <label>y</label>
         <input type="number" step="any" data-loc="fields[${fi}].shift.y" value="${f.shift.y}" data-k="shift.y">
       </div>
+      <div class="meta-row">
+        <label>单视野校正范围（0–5 格）</label>
+        <input type="number" class="narrow" min="0" max="5" step="1"
+               data-loc="fields[${fi}].correctionRange" value="${f.correctionRange}" data-k="correctionRange">
+      </div>
+      <div class="subhead">校准珠（全局唯一编号 · 局部整数坐标）<span> — 同编号跨视野出现即构成配准证据</span></div>
+      <table class="parts">
+        <thead><tr><th style="width:38%">珠编号</th><th style="width:26%">局部x</th>
+          <th style="width:26%">局部y</th><th></th></tr></thead>
+        <tbody class="bead-body"></tbody>
+      </table>
+      <button class="small ghost" data-act="add-bead" style="margin-top:6px">+ 校准珠</button>
+      <div class="subhead">颗粒候选</div>
       <table class="parts">
         <thead><tr><th style="width:22%">编号</th><th style="width:18%">局部x</th>
           <th style="width:18%">局部y</th><th style="width:30%">聚合物类别</th><th></th></tr></thead>
-        <tbody></tbody>
+        <tbody class="particle-body"></tbody>
       </table>
       <button class="small ghost" data-act="add-particle" style="margin-top:6px">+ 颗粒候选</button>`;
-    const tbody = card.querySelector("tbody");
+
+    const beadBody = card.querySelector(".bead-body");
+    (f.beads || []).forEach((b, bi) => {
+      const tr = document.createElement("tr");
+      tr.dataset.beadIndex = bi;
+      tr.innerHTML = `
+        <td><input type="text" data-loc="fields[${fi}].beads[${bi}].id"
+                   data-bk="id" value="${esc(b.id)}" placeholder="如 B1"></td>
+        <td><input type="number" step="1" data-loc="fields[${fi}].beads[${bi}].x"
+                   data-bk="x" value="${b.x}"></td>
+        <td><input type="number" step="1" data-loc="fields[${fi}].beads[${bi}].y"
+                   data-bk="y" value="${b.y}"></td>
+        <td><button class="small ghost" data-act="del-bead">×</button></td>`;
+      beadBody.appendChild(tr);
+    });
+
+    const pBody = card.querySelector(".particle-body");
     f.particles.forEach((p, pi) => {
       const tr = document.createElement("tr");
       tr.dataset.pIndex = pi;
@@ -182,7 +269,7 @@ function render() {
         <td><input type="text" data-loc="fields[${fi}].particles[${pi}].category"
                    data-k="category" value="${esc(p.category)}" placeholder="如 PE / PP"></td>
         <td><button class="small ghost" data-act="del-particle">×</button></td>`;
-      tbody.appendChild(tr);
+      pBody.appendChild(tr);
     });
     box.appendChild(card);
   });
@@ -199,7 +286,7 @@ function locate(loc) {
   // 精确定位到输入框；行/卡片级错误向上归并高亮
   const direct = document.querySelector(`[data-loc="${CSS.escape(loc)}"]`);
   if (direct) { direct.classList.add("invalid"); return; }
-  const m = loc.match(/^fields\[(\d+)\]\.particles\[(\d+)\]/);
+  let m = loc.match(/^fields\[(\d+)\]\.particles\[(\d+)\]/);
   if (m) {
     const card = document.querySelector(`.field-card[data-field-index="${m[1]}"]`);
     const row = card && card.querySelector(`tr[data-p-index="${m[2]}"]`);
@@ -207,28 +294,47 @@ function locate(loc) {
     if (card) card.classList.add("invalid");
     return;
   }
-  const fm = loc.match(/^fields\[(\d+)\]/);
-  if (fm) {
-    const card = document.querySelector(`.field-card[data-field-index="${fm[1]}"]`);
+  m = loc.match(/^fields\[(\d+)\]\.beads(?:\[(\d+)\])?/);
+  if (m) {
+    const card = document.querySelector(`.field-card[data-field-index="${m[1]}"]`);
+    if (m[2] !== undefined) {
+      const row = card && card.querySelector(`tr[data-bead-index="${m[2]}"]`);
+      if (row) row.classList.add("row-invalid");
+    }
     if (card) card.classList.add("invalid");
+    return;
   }
+  m = loc.match(/^fields\[(\d+)\]/);
+  if (m) {
+    const card = document.querySelector(`.field-card[data-field-index="${m[1]}"]`);
+    if (card) card.classList.add("invalid");
+    return;
+  }
+  if (loc === "beadResidualLimit")
+    document.getElementById("beadResidualLimit").classList.add("invalid");
 }
 
 // 委托：任意输入实时回写 state 并持久化草稿
 document.getElementById("fields").addEventListener("input", (ev) => {
   const el = ev.target;
   const card = el.closest(".field-card");
-  if (!card || !el.dataset.k) return;
+  if (!card) return;
   const fi = +card.dataset.fieldIndex;
-  const row = el.closest("tr[data-p-index]");
   let val;
   if (el.type === "number") val = el.value === "" ? null : Number(el.value);
   else val = el.value;
-  if (row) {
-    state.fields[fi].particles[+row.dataset.pIndex][el.dataset.k] = val;
+
+  const beadRow = el.closest("tr[data-bead-index]");
+  const pRow = el.closest("tr[data-p-index]");
+  if (beadRow && el.dataset.bk) {
+    state.fields[fi].beads[+beadRow.dataset.beadIndex][el.dataset.bk] = val;
+  } else if (pRow && el.dataset.k) {
+    state.fields[fi].particles[+pRow.dataset.pIndex][el.dataset.k] = val;
   } else if (el.dataset.k === "name") {
     state.fields[fi].name = val;
-  } else if (el.dataset.k.startsWith("shift.")) {
+  } else if (el.dataset.k === "correctionRange") {
+    state.fields[fi].correctionRange = val;
+  } else if (el.dataset.k && el.dataset.k.startsWith("shift.")) {
     state.fields[fi].shift[el.dataset.k.slice(6)] = val;
   }
   saveDraft();
@@ -237,23 +343,31 @@ document.getElementById("tolerance").addEventListener("input", (e) => {
   state.tolerance = e.target.value === "" ? null : Number(e.target.value);
   saveDraft();
 });
+document.getElementById("beadResidualLimit").addEventListener("input", (e) => {
+  state.beadResidualLimit = e.target.value === "" ? null : Number(e.target.value);
+  saveDraft();
+});
 
 document.getElementById("fields").addEventListener("click", (ev) => {
   const btn = ev.target.closest("button[data-act]");
   if (!btn) return;
   const card = btn.closest(".field-card");
   const fi = +card.dataset.fieldIndex;
-  if (btn.dataset.act === "add-particle") {
+  const act = btn.dataset.act;
+  if (act === "add-particle") {
     state.fields[fi].particles.push({id:"", x:0, y:0, category:""});
-    saveDraft(); render();
-  } else if (btn.dataset.act === "del-particle") {
+  } else if (act === "del-particle") {
     const pi = +btn.closest("tr[data-p-index]").dataset.pIndex;
     state.fields[fi].particles.splice(pi, 1);
-    saveDraft(); render();
-  } else if (btn.dataset.act === "del-field") {
+  } else if (act === "add-bead") {
+    state.fields[fi].beads.push({id:"", x:0, y:0});
+  } else if (act === "del-bead") {
+    const bi = +btn.closest("tr[data-bead-index]").dataset.beadIndex;
+    state.fields[fi].beads.splice(bi, 1);
+  } else if (act === "del-field") {
     state.fields.splice(fi, 1);
-    saveDraft(); render();
-  }
+  } else { return; }
+  saveDraft(); render();
 });
 document.getElementById("btnAddField").addEventListener("click", () => {
   if (state.fields.length < MAX_FIELDS) {
@@ -264,26 +378,42 @@ document.getElementById("btnAddField").addEventListener("click", () => {
 document.getElementById("btnSample").addEventListener("click", () => {
   state = sampleDraft(); saveDraft();
   document.getElementById("results").innerHTML = "";
-  document.getElementById("okBox").style.display = "none";
-  render();
+  hideBanners(); render();
 });
 document.getElementById("btnClear").addEventListener("click", () => {
   if (!confirm("确定清空当前草稿？")) return;
   state = defaultDraft(); saveDraft();
   document.getElementById("results").innerHTML = "";
-  document.getElementById("okBox").style.display = "none";
-  render();
+  hideBanners(); render();
 });
 
 function fmt(n) {
   return Number.isInteger(n) ? String(n) : String(Number(n).toFixed(3));
 }
+function hideBanners() {
+  document.getElementById("errorBox").style.display = "none";
+  document.getElementById("okBox").style.display = "none";
+  document.getElementById("warnBox").style.display = "none";
+}
+function showErrors(data) {
+  const errBox = document.getElementById("errorBox");
+  const errList = document.getElementById("errorList");
+  errBox.style.display = "block";
+  errList.innerHTML = "";
+  (data.errors || []).forEach(e => {
+    const li = document.createElement("li");
+    li.innerHTML = `<code>${esc(e.loc)}</code> ${esc(e.message)}`;
+    errList.appendChild(li);
+    locate(e.loc);
+  });
+}
 
-function renderResults(res) {
-  const box = document.getElementById("results");
+// --------------------------- 结果渲染 --------------------------- //
+function buildDedupHtml(res, title, subtitle) {
   const s = res.summary;
-  let html = `
-    <h2 style="font-size:16px;margin:4px 0 8px;">裁决结果</h2>
+  let html = title ? `<h2 class="section">${esc(title)}</h2>` : "";
+  if (subtitle) html += `<p class="note" style="margin:0 0 8px">${esc(subtitle)}</p>`;
+  html += `
     <div class="summary">
       <div class="stat">最终颗粒总数<b>${s.finalParticleCount}</b></div>
       <div class="stat">观测总数<b>${s.totalObservations}</b></div>
@@ -320,48 +450,198 @@ function renderResults(res) {
     }
     html += `</div>`;
   });
-  box.innerHTML = html;
+  return html;
+}
+
+function renderDedupResults(res, title, subtitle) {
+  document.getElementById("results").innerHTML =
+    buildDedupHtml(res, title, subtitle);
+}
+
+function renderReview(res, sourceNote) {
+  const box = document.getElementById("results");
+  const s = res.summary;
+  const disc = res.registration.disconnectedFields;
+  let html = `<h2 class="section">配准复核结果${sourceNote ? ` <span class="note">（${esc(sourceNote)}）</span>` : ""}</h2>
+    <div class="summary">
+      <div class="stat">连通首视野视野<b>${s.connectedFieldCount} / ${s.fieldCount}</b></div>
+      <div class="stat">参与约束校准珠<b>${s.usedBeadCount}</b></div>
+      <div class="stat">仅出现一次珠<b>${s.singleOccurrenceBeadCount}</b></div>
+      <div class="stat">最大坐标残差<b>${fmt(s.maxResidual)}</b></div>
+      <div class="stat">校正量曼哈顿和<b>${s.totalCorrectionManhattan}</b></div>
+      <div class="stat">残差上限<b>${fmt(res.beadResidualLimit)}</b></div>
+      <div class="stat">校正后最终颗粒<b>${s.finalParticleCount}</b></div>
+    </div>`;
+
+  if (disc.length) {
+    const names = disc.map(i => res.fields[i].fieldName).join("、");
+    html += `<div class="banner warn" style="display:block">无法经共享校准珠连到首视野的视野：
+      <b>${esc(names)}</b>（序号 ${disc.map(i => i + 1).join("、")}）；其校正固定为 (0, 0)，
+      重跑去重沿用原登记平移，请补录跨组共享校准珠后再复核。</div>`;
+  }
+
+  // 视野校正：原平移 / 校正量 / 校正平移
+  html += `<div class="panel"><h3 style="margin:0 0 6px;font-size:15px;color:var(--blue-dark)">视野平移校正</h3>
+    <table class="detail"><thead><tr><th>视野(序号)</th><th>校正范围</th>
+      <th>原登记平移</th><th>校正量</th><th>校正后平移</th><th>状态</th></tr></thead><tbody>`;
+  res.fields.forEach(f => {
+    html += `<tr${f.connectedToFirst ? "" : ` class="delta-bad"`}>
+      <td>${esc(f.fieldName)}（#${f.fieldIndex + 1}）</td>
+      <td>±${f.correctionRange} 格</td>
+      <td>(${fmt(f.originalShift.x)}, ${fmt(f.originalShift.y)})</td>
+      <td><b>(${fmt(f.correction.x)}, ${fmt(f.correction.y)})</b></td>
+      <td>(${fmt(f.correctedShift.x)}, ${fmt(f.correctedShift.y)})</td>
+      <td>${f.connectedToFirst
+          ? '<span class="delta-ok">已由共享校准珠锚定</span>'
+          : '<span class="delta-bad">未连到首视野 · 校正固定零</span>'}</td></tr>`;
+  });
+  html += `</tbody></table>
+    <p class="note" style="margin:6px 0 0">首视野校正固定为 (0,0)；优化次序：最大坐标残差最小 →
+      校正量曼哈顿和最小 → 录入顺序校正坐标序列字典序最小。</p></div>`;
+
+  // 珠位证据
+  html += `<div class="panel"><h3 style="margin:0 0 6px;font-size:15px;color:var(--blue-dark)">珠位证据</h3>`;
+  res.registration.beads.forEach(b => {
+    const tag = b.usedInConstraints
+      ? `<span class="tag">出现 ${b.occurrenceCount} 次 · 参与约束</span>`
+      : `<span class="tag single">仅出现 1 次 · 不参与约束</span>`;
+    html += `<div style="margin:8px 0">
+      <b>${esc(b.beadId)}</b>${tag}
+      ${b.usedInConstraints
+        ? (b.withinLimit
+            ? `<span class="tag" style="background:var(--green-bg);color:var(--green)">最大残差 (|Δx|,|Δy|)=(${fmt(b.maxDeltaX)}, ${fmt(b.maxDeltaY)}) ≤ ${fmt(res.beadResidualLimit)}</span>`
+            : `<span class="tag off">残差超上限</span>`)
+        : ""}
+      <table class="detail"><thead><tr><th>视野</th><th>局部整数坐标</th>
+        <th>原登记滤膜坐标</th><th>校正量</th><th>校正后滤膜坐标</th></tr></thead><tbody>`;
+    b.observations.forEach(o => {
+      html += `<tr><td>${esc(o.fieldName)}（#${o.fieldIndex + 1}）
+          ${o.connectedToFirst ? "" : '<span class="tag off">未连首视野</span>'}</td>
+        <td>(${o.local.x}, ${o.local.y})</td>
+        <td>(${fmt(o.unregisteredFilter.x)}, ${fmt(o.unregisteredFilter.y)})</td>
+        <td>(${fmt(o.correction.x)}, ${fmt(o.correction.y)})</td>
+        <td><b>(${fmt(o.filter.x)}, ${fmt(o.filter.y)})</b></td></tr>`;
+    });
+    html += `</tbody></table>`;
+    if (b.pairResiduals.length) {
+      html += `<table class="detail"><thead><tr><th>成对残差</th><th>|Δx|</th><th>|Δy|</th>
+        <th>≤ 上限 ${fmt(res.beadResidualLimit)}</th></tr></thead><tbody>`;
+      b.pairResiduals.forEach(pr => {
+        html += `<tr><td>${esc(pr.fromFieldName)} ↔ ${esc(pr.toFieldName)}</td>
+          <td>${fmt(pr.deltaX)}</td><td>${fmt(pr.deltaY)}</td>
+          <td class="${pr.withinLimit ? "delta-ok" : "delta-bad"}">${pr.withinLimit ? "满足" : "超限"}</td></tr>`;
+      });
+      html += `</tbody></table>`;
+    }
+    html += `</div>`;
+  });
+  html += `</div>`;
+
+  // 更新后的最终颗粒（校正后平移重跑去重）：与上面的校正/证据面板一次性拼接，
+  // 避免分两次写入 #results 造成覆盖
+  box.innerHTML = html + buildDedupHtml(
+      res.deduplication,
+      "更新后的最终颗粒（以校正后平移重新执行既有颗粒去重）",
+      `去重容差 ${fmt(res.tolerance)}；颗粒观测的滤膜坐标均已使用校正后平移换算。`);
+}
+
+// --------------------------- 接口调用 --------------------------- //
+async function postJson(url) {
+  const resp = await fetch(url, {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify(state),
+  });
+  const data = await resp.json().catch(() => ({}));
+  return {resp, data};
 }
 
 document.getElementById("btnSubmit").addEventListener("click", async () => {
-  clearHighlights();
-  const errBox = document.getElementById("errorBox");
-  const errList = document.getElementById("errorList");
-  const okBox = document.getElementById("okBox");
-  errBox.style.display = "none";
-  errList.innerHTML = "";
-
-  // 服务端为最终裁决；页面仅依赖 422 反馈做定位高亮，草稿始终保留
+  clearHighlights(); hideBanners();
   try {
-    const resp = await fetch("/api/particle-deduplications", {
-      method: "POST",
-      headers: {"Content-Type": "application/json"},
-      body: JSON.stringify(state),
-    });
-    const data = await resp.json();
+    const {resp, data} = await postJson("/api/particle-deduplications");
     if (resp.status === 422) {
-      errBox.style.display = "block";
-      (data.errors || []).forEach(e => {
-        const li = document.createElement("li");
-        li.innerHTML = `<code>${esc(e.loc)}</code> ${esc(e.message)}`;
-        errList.appendChild(li);
-        locate(e.loc);
-      });
+      showErrors(data);
       document.getElementById("results").innerHTML = "";
-      okBox.style.display = "none";
       return; // 草稿始终保留在 localStorage 与页面中
     }
     if (!resp.ok) {
-      errBox.style.display = "block";
-      errList.innerHTML = `<li>服务异常（HTTP ${resp.status}），草稿已保留</li>`;
+      const eb = document.getElementById("errorBox");
+      eb.style.display = "block";
+      document.getElementById("errorList").innerHTML =
+        `<li>服务异常（HTTP ${resp.status}），草稿已保留</li>`;
       return;
     }
-    renderResults(data);
+    renderDedupResults(data, "去重裁决结果（使用当前登记平移）");
+    const okBox = document.getElementById("okBox");
     okBox.textContent = `裁决完成：${data.summary.finalParticleCount} 个最终颗粒，已选 ${data.summary.associationCount} 条关联，曼哈顿差总和 ${fmt(data.summary.totalManhattan)}。`;
     okBox.style.display = "block";
   } catch (e) {
-    errBox.style.display = "block";
-    errList.innerHTML = `<li>网络或服务不可用：${esc(e.message)}（草稿已保留）</li>`;
+    const eb = document.getElementById("errorBox");
+    eb.style.display = "block";
+    document.getElementById("errorList").innerHTML =
+      `<li>网络或服务不可用：${esc(e.message)}（草稿已保留）</li>`;
+  }
+});
+
+document.getElementById("btnReview").addEventListener("click", async () => {
+  clearHighlights(); hideBanners();
+  try {
+    const {resp, data} = await postJson("/api/registration-reviews");
+    if (resp.status === 422) {
+      showErrors(data);
+      document.getElementById("warnBox").style.display = "block";
+      document.getElementById("warnBox").textContent =
+        "本次配准复核未成功：草稿已保留，上一次成功复核结果保持不变，可用下方按钮查看。";
+      return;
+    }
+    if (!resp.ok) {
+      const eb = document.getElementById("errorBox");
+      eb.style.display = "block";
+      document.getElementById("errorList").innerHTML =
+        `<li>服务异常（HTTP ${resp.status}），草稿与上次成功复核结果均保留</li>`;
+      return;
+    }
+    renderReview(data);
+    const disc = data.registration.disconnectedFields.length;
+    const okBox = document.getElementById("okBox");
+    okBox.textContent = `配准复核成功：最大坐标残差 ${fmt(data.summary.maxResidual)}，` +
+      `校正量曼哈顿和 ${data.summary.totalCorrectionManhattan}，校正后最终颗粒 ` +
+      `${data.summary.finalParticleCount} 个。结果已保存为上一次成功复核。` +
+      (disc ? `（注意：${disc} 个视野无法连到首视野，已明确标出）` : "");
+    okBox.style.display = "block";
+  } catch (e) {
+    const eb = document.getElementById("errorBox");
+    eb.style.display = "block";
+    document.getElementById("errorList").innerHTML =
+      `<li>网络或服务不可用：${esc(e.message)}（草稿已保留）</li>`;
+  }
+});
+
+document.getElementById("btnLastReview").addEventListener("click", async () => {
+  clearHighlights(); hideBanners();
+  try {
+    const resp = await fetch("/api/registration-reviews/last");
+    if (resp.status === 404) {
+      const wb = document.getElementById("warnBox");
+      wb.style.display = "block";
+      wb.textContent = "服务端尚无成功的配准复核记录。";
+      return;
+    }
+    if (!resp.ok) {
+      const eb = document.getElementById("errorBox");
+      eb.style.display = "block";
+      document.getElementById("errorList").innerHTML =
+        `<li>读取上一次成功复核失败（HTTP ${resp.status}）</li>`;
+      return;
+    }
+    const data = await resp.json();
+    renderReview(data, "上一次成功复核结果（服务端保留）");
+  } catch (e) {
+    const eb = document.getElementById("errorBox");
+    eb.style.display = "block";
+    document.getElementById("errorList").innerHTML =
+      `<li>网络或服务不可用：${esc(e.message)}</li>`;
   }
 });
 

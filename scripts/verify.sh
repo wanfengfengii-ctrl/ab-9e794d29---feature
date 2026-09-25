@@ -17,6 +17,7 @@ echo "== [3/4] 代码：单元测试（pytest）=="
 python -m pytest -q
 
 echo "== [4/4] API 冒烟验收（对 compose 中的 web 服务发真实 HTTP 请求）=="
+echo "       覆盖：健康检查、首页、去重裁决 200/422、配准复核 200/422 与上次成功结果"
 python scripts/smoke.py
 
 echo ""
