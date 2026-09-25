@@ -10,6 +10,7 @@ from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 
 from .dedup import ValidationError, solve_request
+from .registration import solve_review_request
 
 logger = logging.getLogger("particle-dedup")
 
@@ -53,6 +54,44 @@ async def particle_deduplications(request: Request) -> JSONResponse:
                 "message": "输入不合规，已保留草稿，请按下列提示修改",
                 "errors": exc.errors,
                 "draft": exc.draft,
+            },
+        )
+
+    return JSONResponse(status_code=200, content=result)
+
+
+@app.post("/api/registration-reviews")
+async def registration_reviews(request: Request) -> JSONResponse:
+    """配准复核：校准珠联合定标 → 校正后平移重跑去重。
+
+    校验失败（含校准珠重复/坐标非整数、范围 0–5 不合规、不可连首视野、
+    不存在可行配准）统一返回 422，错误逐项可定位并原样回显草稿；
+    服务端不持久化，前端保留草稿且不覆盖上一次成功复核结果。
+    """
+    try:
+        payload = await request.json()
+    except Exception:
+        return JSONResponse(
+            status_code=422,
+            content={
+                "message": "请求体不是合法的 JSON",
+                "errors": [{"loc": "$", "message": "请求体必须是合法 JSON 对象"}],
+                "draft": None,
+            },
+        )
+
+    try:
+        result = solve_review_request(payload)
+    except ValidationError as exc:
+        logger.info("配准复核请求校验失败：%d 处问题", len(exc.errors))
+        return JSONResponse(
+            status_code=422,
+            content={
+                "message": "输入不合规，已保留草稿，请按下列提示修改",
+                "errors": exc.errors,
+                "draft": exc.draft,
+                "draftPreserved": True,
+                "previousReviewPreserved": True,
             },
         )
 
